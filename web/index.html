@@ -142,7 +142,7 @@
       </div>
       <div class="badge" id="connStatus">
         <span class="pulse-dot"></span>
-        <span>ADMS Listener Active</span>
+        <span>VPS Receiver (Port 8087): Running</span>
       </div>
     </header>
 
@@ -216,9 +216,12 @@
         if (devices && devices.length > 0) {
           const d = devices[0];
           document.getElementById('devLiveStatus').innerText = d.status;
-          document.getElementById('devLiveStatus').style.color = '#10b981';
+          document.getElementById('devLiveStatus').style.color = d.status === 'ONLINE' ? '#10b981' : '#ef4444';
           document.getElementById('devLastSeen').innerText = new Date(d.last_seen_at).toLocaleTimeString();
           document.getElementById('devIP').innerText = d.client_ip;
+        } else {
+          document.getElementById('devLiveStatus').innerText = 'Waiting for device...';
+          document.getElementById('devLiveStatus').style.color = '#f59e0b';
         }
       } catch (err) {
         console.error('loadDevices err:', err);
