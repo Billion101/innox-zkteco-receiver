@@ -113,6 +113,39 @@ func (r *Repository) EnsureSchema(ctx context.Context) error {
 		`, emp.PIN, emp.Name, emp.Department)
 	}
 
+	// Preload existing devices from DB
+	devRows, err := r.pool.Query(ctx, `SELECT sn, client_ip, push_ver, language, last_seen_at, status FROM zkteco_devices`)
+	if err == nil {
+		defer devRows.Close()
+		r.mu.Lock()
+		for devRows.Next() {
+			var d model.Device
+			if err := devRows.Scan(&d.SN, &d.ClientIP, &d.PushVer, &d.Language, &d.LastSeenAt, &d.Status); err == nil {
+				r.devices[d.SN] = &d
+			}
+		}
+		r.mu.Unlock()
+	}
+
+	// Preload recent events from DB
+	evRows, err := r.pool.Query(ctx, `
+		SELECT id, sn, pin, employee_name, action, status, event_time, work_duration_minutes, verify_type_name
+		FROM zkteco_events
+		ORDER BY event_time DESC
+		LIMIT 100
+	`)
+	if err == nil {
+		defer evRows.Close()
+		r.mu.Lock()
+		for evRows.Next() {
+			var ev model.AttendanceEvent
+			if err := evRows.Scan(&ev.ID, &ev.SN, &ev.PIN, &ev.EmployeeName, &ev.Action, &ev.Status, &ev.EventTime, &ev.WorkDurationMinutes, &ev.VerifyTypeName); err == nil {
+				r.recentEvents = append(r.recentEvents, &ev)
+			}
+		}
+		r.mu.Unlock()
+	}
+
 	log.Println("[repo] PostgreSQL schema and seed data verified successfully")
 	return nil
 }
@@ -154,7 +187,7 @@ func (r *Repository) ListDevices() []*model.Device {
 	list := make([]*model.Device, 0, len(r.devices))
 	for _, d := range r.devices {
 		copyDev := *d
-		// Devices send heartbeats every 30-60s. If older than 90s, mark as OFFLINE
+		// Devices send heartbeats every 15-60s. If older than 90s, mark as OFFLINE
 		if time.Since(copyDev.LastSeenAt) > 90*time.Second {
 			copyDev.Status = "OFFLINE"
 		} else {
@@ -242,6 +275,28 @@ func (r *Repository) GetFirstCheckinForPIN(pin string, date string) *model.Atten
 }
 
 func (r *Repository) ListRecentEvents(limit int) []*model.AttendanceEvent {
+	if r.pool != nil {
+		rows, err := r.pool.Query(context.Background(), `
+			SELECT id, sn, pin, employee_name, action, status, event_time, work_duration_minutes, verify_type_name
+			FROM zkteco_events
+			ORDER BY event_time DESC
+			LIMIT $1;
+		`, limit)
+		if err == nil {
+			defer rows.Close()
+			var list []*model.AttendanceEvent
+			for rows.Next() {
+				var ev model.AttendanceEvent
+				if err := rows.Scan(&ev.ID, &ev.SN, &ev.PIN, &ev.EmployeeName, &ev.Action, &ev.Status, &ev.EventTime, &ev.WorkDurationMinutes, &ev.VerifyTypeName); err == nil {
+					list = append(list, &ev)
+				}
+			}
+			if len(list) > 0 {
+				return list
+			}
+		}
+	}
+
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if limit <= 0 || limit > len(r.recentEvents) {
