@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   zkteco-db:
     image: postgres:16-alpine
