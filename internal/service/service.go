@@ -50,7 +50,7 @@ func (s *Service) ProcessHandshake(ctx context.Context, sn, clientIP, pushVer, l
 		"BIODATAStamp=0\n"+
 		"ATTPHOTOStamp=0\n"+
 		"ErrorDelay=10\n"+
-		"Delay=5\n"+
+		"Delay=30\n"+
 		"TransInterval=1\n"+
 		"TransTimes=00:00;23:59\n"+
 		"TransFlag=111111111111\n"+
@@ -81,17 +81,7 @@ func (s *Service) ProcessRegistry(ctx context.Context, sn, clientIP, body string
 	s.repo.UpsertDevice(ctx, dev)
 	log.Printf("[adms] registry successful: SN=%s IP=%s payload=%q", sn, clientIP, body)
 
-	return "registry=ok\n" +
-		"RegistryCode=12345678901234567890\n" +
-		"ServerVersion=3.1.2\n" +
-		"ServerName=InnoxADMS\n" +
-		"PushProtVer=3.1.2\n" +
-		"ErrorDelay=60\n" +
-		"RequestDelay=5\n" +
-		"TransInterval=1\n" +
-		"TransTimes=00:00;23:59\n" +
-		"Realtime=1\n" +
-		"OK\n"
+	return "OK\n"
 }
 
 func (s *Service) ProcessHeartbeat(ctx context.Context, sn, clientIP string) string {
