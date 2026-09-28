@@ -187,8 +187,8 @@ func (r *Repository) ListDevices() []*model.Device {
 	list := make([]*model.Device, 0, len(r.devices))
 	for _, d := range r.devices {
 		copyDev := *d
-		// Devices send heartbeats every 15-60s. If older than 90s, mark as OFFLINE
-		if time.Since(copyDev.LastSeenAt) > 90*time.Second {
+		// Devices send heartbeats every 15-60s. If older than 120s, mark as OFFLINE
+		if time.Since(copyDev.LastSeenAt) > 120*time.Second {
 			copyDev.Status = "OFFLINE"
 		} else {
 			copyDev.Status = "ONLINE"
