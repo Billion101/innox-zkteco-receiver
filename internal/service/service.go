@@ -78,6 +78,8 @@ func (s *Service) ProcessHandshake(ctx context.Context, sn, clientIP, pushVer, l
 	log.Printf("[adms] initial handshake from device SN=%s IP=%s PushVer=%s Lang=%s", sn, clientIP, pushVer, lang)
 
 	return fmt.Sprintf("GET OPTION FROM: %s\n"+
+		"Stamp=0\n"+
+		"OpStamp=0\n"+
 		"ATTLOGStamp=0\n"+
 		"OPERLOGStamp=0\n"+
 		"BIODATAStamp=0\n"+
