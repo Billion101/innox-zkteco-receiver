@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/innox-la/innox-zkteco-receiver/doc"
 	"github.com/innox-la/innox-zkteco-receiver/internal/config"
 	"github.com/innox-la/innox-zkteco-receiver/internal/handler"
 	"github.com/innox-la/innox-zkteco-receiver/internal/repository"
@@ -66,6 +67,14 @@ func main() {
 
 	// Web UI & Monitoring APIs
 	r.Get("/", dashHandler.RenderDashboard)
+	r.Get("/doc", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(doc.ReportHTML)
+	})
+	r.Get("/report", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = w.Write(doc.ReportHTML)
+	})
 	r.Get("/api/devices", dashHandler.ListDevices)
 	r.Get("/api/punches", dashHandler.ListPunches)
 	r.Get("/api/events/stream", dashHandler.GetEventsStream)
