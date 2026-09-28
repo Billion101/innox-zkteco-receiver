@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "INNO X ZKTeco ADMS Receiver",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

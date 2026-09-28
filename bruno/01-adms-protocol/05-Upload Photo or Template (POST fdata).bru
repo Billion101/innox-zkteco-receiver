@@ -1,0 +1,21 @@
+meta {
+  name: 05 - Upload Photo or Template (POST fdata)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/iclock/fdata?SN={{deviceSN}}&table=ATTPHOTO
+  body: none
+  auth: none
+}
+
+params:query {
+  SN: {{deviceSN}}
+  table: ATTPHOTO
+}
+
+docs {
+  Device uploads biometric photos or face templates.
+  Server responds with "OK\n".
+}

@@ -1,0 +1,19 @@
+meta {
+  name: 05 - Realtime SSE Events Stream
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/events/stream
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: text/event-stream
+}
+
+docs {
+  Server-Sent Events (SSE) stream for real-time punch event notifications.
+}

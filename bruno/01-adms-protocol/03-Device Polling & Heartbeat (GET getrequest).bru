@@ -1,0 +1,20 @@
+meta {
+  name: 03 - Device Polling & Heartbeat (GET getrequest)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/iclock/getrequest?SN={{deviceSN}}
+  body: none
+  auth: none
+}
+
+params:query {
+  SN: {{deviceSN}}
+}
+
+docs {
+  ZKTeco device periodically polls server for pending commands and acts as heartbeat.
+  Server updates LastSeenAt and returns "OK\n".
+}

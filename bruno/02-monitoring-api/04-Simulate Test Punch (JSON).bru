@@ -1,0 +1,30 @@
+meta {
+  name: 04 - Simulate Test Punch (JSON)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/test-punch
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "pin": "13",
+    "verify_type": 15,
+    "sn": "{{deviceSN}}"
+  }
+}
+
+docs {
+  Convenient testing endpoint to simulate a biometric punch without a physical device.
+  - pin: 9 to 16 (e.g. 13 for billion, 16 for saymisouk, 9 for TINAR)
+  - verify_type: 15 (Face Scan), 1 (Fingerprint), 2 (Password), 4 (RFID Card)
+  - sn: device serial number
+}

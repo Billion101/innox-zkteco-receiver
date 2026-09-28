@@ -1,0 +1,23 @@
+meta {
+  name: 01 - Handshake (GET cdata)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/iclock/cdata?SN={{deviceSN}}&options=all&language=83&pushver=2.4.1
+  body: none
+  auth: none
+}
+
+params:query {
+  SN: {{deviceSN}}
+  options: all
+  language: 83
+  pushver: 2.4.1
+}
+
+docs {
+  ZKTeco device initiates handshake to negotiate options and register with server.
+  Server responds with device config (e.g., Realtime=1, TransInterval=1, TransFlag).
+}

@@ -1,0 +1,15 @@
+meta {
+  name: 02 - List Connected Devices
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/devices
+  body: none
+  auth: none
+}
+
+docs {
+  Returns all registered devices, their IP address, push version, last seen timestamp, and online status.
+}

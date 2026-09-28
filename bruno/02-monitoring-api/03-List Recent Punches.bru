@@ -1,0 +1,15 @@
+meta {
+  name: 03 - List Recent Punches
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/punches
+  body: none
+  auth: none
+}
+
+docs {
+  Returns the last 100 processed attendance events, with action (CHECK_IN / CHECK_OUT / DUPLICATE_IGNORED), status (ON_TIME / LATE), and calculated work duration.
+}

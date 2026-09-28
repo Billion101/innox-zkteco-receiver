@@ -1,0 +1,28 @@
+meta {
+  name: 04 - Device Command ACK (POST devicecmd)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/iclock/devicecmd?SN={{deviceSN}}
+  body: text
+  auth: none
+}
+
+params:query {
+  SN: {{deviceSN}}
+}
+
+headers {
+  Content-Type: text/plain
+}
+
+body:text {
+  ID=1&Return=0&CMD=DATA
+}
+
+docs {
+  ZKTeco device acknowledges receipt or execution of server commands.
+  Server responds with "OK\n".
+}
