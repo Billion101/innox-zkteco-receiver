@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INNO X — ZKTeco Face Scan Attendance Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      padding: 24px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .brand h1 { font-size: 22px; font-weight: 700; color: #fff; }
+    .brand p { font-size: 13px; color: var(--text-muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--success);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .grid { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .dev-info { font-size: 13px; display: grid; gap: 10px; }
+    .dev-row { display: flex; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid #1a2234; }
+    .dev-row span:first-child { color: var(--text-muted); }
+    .dev-row span:last-child { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+    th { color: var(--text-muted); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 12px; border-bottom: 1px solid #1a2234; }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tag-checkin { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .tag-checkout { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+    .tag-ignored { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
+    .tag-ontime { color: #10b981; }
+    .tag-late { color: #f59e0b; }
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: #1e293b; }
+    .test-box {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    select, input {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: white;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <h1>INNO X — ZKTeco Biometric Hub</h1>
+        <p>SenseFace 4A ADMS Realtime Cloud Ingestion (Port 8087)</p>
+      </div>
+      <div class="badge" id="connStatus">
+        <span class="pulse-dot"></span>
+        <span>ADMS Listener Active</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Device & System Status Card -->
+      <div class="card">
+        <h2>
+          <span>Connected Terminal</span>
+          <span style="font-size: 12px; color: var(--primary);">Realtime ADMS</span>
+        </h2>
+        <div class="dev-info" id="deviceList">
+          <div class="dev-row"><span>Terminal Model</span><span>SenseFace 4A</span></div>
+          <div class="dev-row"><span>Expected SN</span><span>PYA8262400422</span></div>
+          <div class="dev-row"><span>Server Port</span><span>8087 (HTTP)</span></div>
+          <div class="dev-row"><span>Status</span><span id="devLiveStatus" style="color: var(--warning)">Waiting for device...</span></div>
+          <div class="dev-row"><span>Last Handshake</span><span id="devLastSeen">—</span></div>
+          <div class="dev-row"><span>Terminal IP</span><span id="devIP">—</span></div>
+        </div>
+
+        <div class="test-box">
+          <select id="testPin">
+            <option value="13">PIN 13 — Billion (Core)</option>
+            <option value="16">PIN 16 — Saymisouk (Core)</option>
+            <option value="9">PIN 9 — TINAR (Eng)</option>
+            <option value="10">PIN 10 — singthou (Eng)</option>
+            <option value="11">PIN 11 — sengsourath (Ops)</option>
+            <option value="12">PIN 12 — ketsana (Product)</option>
+            <option value="14">PIN 14 — anouluck (QA)</option>
+            <option value="15">PIN 15 — XANAKONE (Mgmt)</option>
+          </select>
+          <button class="btn" onclick="sendTestPunch()">Test Punch</button>
+        </div>
+      </div>
+
+      <!-- Live Attendance Stream Card -->
+      <div class="card">
+        <h2>
+          <span>Live Attendance Stream</span>
+          <button class="btn btn-outline" style="padding: 4px 10px; font-size: 11px;" onclick="loadPunches()">Refresh</button>
+        </h2>
+        <div style="overflow-x: auto; max-height: 420px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Employee</th>
+                <th>PIN</th>
+                <th>Action</th>
+                <th>Status</th>
+                <th>Mode</th>
+              </tr>
+            </thead>
+            <tbody id="punchTableBody">
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
+                  Listening for scans from ZKTeco device...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadDevices() {
+      try {
+        const res = await fetch('/api/devices');
+        const devices = await res.json();
+        if (devices && devices.length > 0) {
+          const d = devices[0];
+          document.getElementById('devLiveStatus').innerText = d.status;
+          document.getElementById('devLiveStatus').style.color = '#10b981';
+          document.getElementById('devLastSeen').innerText = new Date(d.last_seen_at).toLocaleTimeString();
+          document.getElementById('devIP').innerText = d.client_ip;
+        }
+      } catch (err) {
+        console.error('loadDevices err:', err);
+      }
+    }
+
+    async function loadPunches() {
+      try {
+        const res = await fetch('/api/punches');
+        const list = await res.json();
+        renderTable(list);
+      } catch (err) {
+        console.error('loadPunches err:', err);
+      }
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById('punchTableBody');
+      if (!list || list.length === 0) return;
+      tbody.innerHTML = '';
+      list.forEach(item => {
+        const tr = document.createElement('tr');
+        const actionTag = item.action === 'CHECK_IN'
+          ? '<span class="tag tag-checkin">CHECK-IN</span>'
+          : item.action === 'CHECK_OUT'
+          ? '<span class="tag tag-checkout">CHECK-OUT</span>'
+          : '<span class="tag tag-ignored">DUPLICATE</span>';
+
+        const statusClass = item.status === 'ON_TIME' ? 'tag-ontime' : 'tag-late';
+
+        tr.innerHTML = 
+          '<td style="font-family: monospace;">' + new Date(item.event_time).toLocaleTimeString() + '</td>' +
+          '<td style="font-weight: 600;">' + item.employee_name + '</td>' +
+          '<td style="font-family: monospace;">' + item.pin + '</td>' +
+          '<td>' + actionTag + '</td>' +
+          '<td class="' + statusClass + '">' + item.status + '</td>' +
+          '<td>' + item.verify_type_name + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function sendTestPunch() {
+      const pin = document.getElementById('testPin').value;
+      try {
+        const res = await fetch('/api/test-punch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: pin, verify_type: 15, sn: 'PYA8262400422' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadPunches();
+        }
+      } catch (err) {
+        alert('Test punch failed: ' + err.message);
+      }
+    }
+
+    // Connect Server-Sent Events (SSE)
+    const evtSource = new EventSource('/api/events/stream');
+    evtSource.addEventListener('punch', e => {
+      const event = JSON.parse(e.data);
+      console.log('Realtime Punch Received:', event);
+      loadPunches();
+      loadDevices();
+    });
+
+    loadDevices();
+    loadPunches();
+    setInterval(loadDevices, 10000);
+  </script>
+</body>
+</html>

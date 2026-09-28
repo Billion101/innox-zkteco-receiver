@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  zkteco-db:
+    image: postgres:16-alpine
+    container_name: zkteco-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zkteco
+      POSTGRES_PASSWORD: zkteco_password_2026
+      POSTGRES_DB: zkteco_attendance
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - zkteco_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zkteco -d zkteco_attendance"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  zkteco-receiver:
+    build: .
+    container_name: zkteco-adms-receiver
+    restart: unless-stopped
+    ports:
+      - "8087:8087"
+    environment:
+      PORT: 8087
+      DB_DSN: postgres://zkteco:zkteco_password_2026@zkteco-db:5432/zkteco_attendance?sslmode=disable
+      TZ: Asia/Vientiane
+      DEBOUNCE_MINUTES: 5
+    depends_on:
+      zkteco-db:
+        condition: service_healthy
+
+volumes:
+  zkteco_pgdata:
