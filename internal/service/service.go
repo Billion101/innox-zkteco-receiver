@@ -57,24 +57,16 @@ func (s *Service) ProcessHandshake(ctx context.Context, sn, clientIP, pushVer, l
 	log.Printf("[adms] handshake (options request) from device SN=%s IP=%s PushVer=%s Lang=%s", sn, clientIP, pushVer, lang)
 
 	return fmt.Sprintf("GET OPTION FROM: %s\n"+
-		"registry=ok\n"+
-		"RegistryCode=12345678901234567890\n"+
-		"ServerVersion=3.1.2\n"+
-		"ServerName=InnoxADMS\n"+
-		"PushProtVer=3.1.2\n"+
-		"Stamp=0\n"+
-		"OpStamp=0\n"+
 		"ATTLOGStamp=None\n"+
 		"OPERLOGStamp=None\n"+
 		"ATTPHOTOStamp=None\n"+
-		"ErrorDelay=30\n"+
+		"ErrorDelay=60\n"+
 		"Delay=10\n"+
-		"RequestDelay=10\n"+
 		"TransTimes=00:00;23:59\n"+
 		"TransInterval=1\n"+
 		"TransFlag=TransData AttLog\tOpLog\tAttPhoto\n"+
-		"Realtime=1\n"+
 		"TimeZone=7\n"+
+		"Realtime=1\n"+
 		"Encrypt=0\n", sn)
 }
 
@@ -117,17 +109,7 @@ func (s *Service) ProcessRegistry(ctx context.Context, sn, clientIP, body string
 
 	log.Printf("[adms] registry successful from SN=%s IP=%s", sn, clientIP)
 
-	return "registry=ok\n" +
-		"RegistryCode=12345678901234567890\n" +
-		"ServerVersion=3.1.2\n" +
-		"ServerName=InnoxADMS\n" +
-		"PushProtVer=3.1.2\n" +
-		"ErrorDelay=30\n" +
-		"RequestDelay=10\n" +
-		"TransInterval=1\n" +
-		"TransTimes=00:00;23:59\n" +
-		"Realtime=1\n" +
-		"OK\n"
+	return "OK\n"
 }
 
 func (s *Service) ProcessHeartbeat(ctx context.Context, sn, clientIP string) string {
