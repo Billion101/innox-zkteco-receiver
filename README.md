@@ -26,3 +26,12 @@ A standalone high-performance Cloud Ingestion Service for **ZKTeco SenseFace 4A*
 docker compose up -d --build
 ```
 Access Dashboard at: `http://<SERVER_IP>:8087/`
+
+## Testing with Bruno
+A ready-to-use Bruno API collection is provided under the [`bruno/`](file:///Users/mac2hand/Desktop/innox/innox-zkteco-receiver/bruno) folder:
+- Open Bruno, choose **Open Collection**, and select the `bruno` directory.
+- Select the `Local` environment (`baseUrl`: `http://localhost:8087`, `deviceSN`: `PYA8262400422`).
+- Included folders:
+  - `01-adms-protocol`: Simulates device communication (`cdata`, `getrequest`, `devicecmd`, `fdata`).
+  - `02-monitoring-api`: APIs for dashboard stats, devices, events SSE stream, and JSON test punch.
+

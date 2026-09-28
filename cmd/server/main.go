@@ -60,6 +60,8 @@ func main() {
 	// ZKTeco ADMS Device Endpoints (Outbound HTTP push from terminal)
 	r.Get("/iclock/cdata", admsHandler.GetCData)
 	r.Post("/iclock/cdata", admsHandler.PostCData)
+	r.Get("/iclock/registry", admsHandler.Registry)
+	r.Post("/iclock/registry", admsHandler.Registry)
 	r.Get("/iclock/getrequest", admsHandler.GetRequest)
 	r.Post("/iclock/devicecmd", admsHandler.DeviceCmd)
 	r.Get("/iclock/fdata", admsHandler.FileData)

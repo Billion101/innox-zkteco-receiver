@@ -53,7 +53,7 @@ func (h *ADMSHandler) PostCData(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	log.Printf("[adms] received POST table=%s from SN=%s (size=%d bytes, ip=%s)", table, sn, len(body), clientIP)
+	log.Printf("[adms] received POST table=%s from SN=%s (size=%d bytes, ip=%s): %s", table, sn, len(body), clientIP, string(body))
 
 	count, err := h.svc.ProcessPunchPayload(r.Context(), sn, clientIP, body)
 	if err != nil {
@@ -95,6 +95,30 @@ func (h *ADMSHandler) FileData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("OK\n"))
+}
+
+// Registry handles device registration requests (GET or POST /iclock/registry?SN=...)
+func (h *ADMSHandler) Registry(w http.ResponseWriter, r *http.Request) {
+	sn := r.URL.Query().Get("SN")
+	if sn == "" {
+		sn = "UNKNOWN"
+	}
+	clientIP := getClientIP(r)
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("[adms] registry failed to read body SN=%s: %v", sn, err)
+	}
+	defer r.Body.Close()
+
+	bodyStr := strings.TrimSpace(string(body))
+	log.Printf("[adms] registry received SN=%s IP=%s Method=%s Body=%s", sn, clientIP, r.Method, bodyStr)
+
+	resp := h.svc.ProcessRegistry(r.Context(), sn, clientIP, bodyStr)
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte(resp))
 }
 
 func getClientIP(r *http.Request) string {
