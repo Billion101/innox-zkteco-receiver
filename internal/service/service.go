@@ -45,20 +45,23 @@ func (s *Service) ProcessHandshake(ctx context.Context, sn, clientIP, pushVer, l
 	log.Printf("[adms] handshake from device SN=%s IP=%s PushVer=%s Lang=%s", sn, clientIP, pushVer, lang)
 
 	return fmt.Sprintf("GET OPTION FROM: %s\n"+
-		"RegistryCode=12345678901234567890\n"+
-		"ServerVersion=3.1.2\n"+
-		"ServerName=InnoxADMS\n"+
-		"PushProtVer=3.1.2\n"+
-		"ATTLOGStamp=None\n"+
-		"OPERLOGStamp=None\n"+
-		"ATTPHOTOStamp=None\n"+
-		"ErrorDelay=60\n"+
-		"Delay=10\n"+
-		"TransTimes=00:00;23:59\n"+
+		"ATTLOGStamp=0\n"+
+		"OPERLOGStamp=0\n"+
+		"BIODATAStamp=0\n"+
+		"ATTPHOTOStamp=0\n"+
+		"ErrorDelay=10\n"+
+		"Delay=5\n"+
 		"TransInterval=1\n"+
-		"TransFlag=TransData AttLog\tOpLog\tAttPhoto\n"+
+		"TransTimes=00:00;23:59\n"+
+		"TransFlag=111111111111\n"+
+		"TimeZone=7\n"+
 		"Realtime=1\n"+
-		"Encrypt=0\n", sn)
+		"Encrypt=0\n"+
+		"ServerVer=3.1.2\n"+
+		"PushProtVer=3.1.2\n"+
+		"SupportPing=1\n"+
+		"PushOptionsFlag=1\n"+
+		"RegistryCode=12345678901234567890\n", sn)
 }
 
 func (s *Service) ProcessRegistry(ctx context.Context, sn, clientIP, body string) string {
