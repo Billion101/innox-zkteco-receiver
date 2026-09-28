@@ -115,3 +115,18 @@ func (h *DashboardHandler) RenderDashboard(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, _ = w.Write(web.IndexHTML)
 }
+
+func (h *DashboardHandler) SyncLogs(w http.ResponseWriter, r *http.Request) {
+	sn := r.URL.Query().Get("SN")
+	if sn != "" {
+		h.svc.QueueCommand(sn, "DATA QUERY ATTLOG")
+	} else {
+		h.svc.QueueCommandAll("DATA QUERY ATTLOG")
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"ok":      true,
+		"message": "DATA QUERY ATTLOG command queued for device",
+	})
+}

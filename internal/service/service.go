@@ -97,6 +97,23 @@ func (s *Service) ProcessHandshake(ctx context.Context, sn, clientIP, pushVer, l
 		"RegistryCode=12345678901234567890\n", sn)
 }
 
+func (s *Service) QueueCommand(sn, cmd string) {
+	s.cmdMu.Lock()
+	defer s.cmdMu.Unlock()
+	if s.cmdQueue == nil {
+		s.cmdQueue = make(map[string][]string)
+	}
+	s.cmdQueue[sn] = append(s.cmdQueue[sn], cmd)
+	log.Printf("[adms] queued command %q for SN=%s", cmd, sn)
+}
+
+func (s *Service) QueueCommandAll(cmd string) {
+	devices := s.repo.ListDevices()
+	for _, d := range devices {
+		s.QueueCommand(d.SN, cmd)
+	}
+}
+
 func (s *Service) ProcessRegistry(ctx context.Context, sn, clientIP, body string) string {
 	dev, ok := s.repo.GetDevice(sn)
 	if !ok {
@@ -117,12 +134,10 @@ func (s *Service) ProcessRegistry(ctx context.Context, sn, clientIP, body string
 	s.devRegistered[sn] = true
 	s.devMu.Unlock()
 
-	// Queue LOG command to fetch any stored attendance records
-	s.cmdMu.Lock()
-	s.cmdQueue[sn] = append(s.cmdQueue[sn], "LOG")
-	s.cmdMu.Unlock()
+	// Queue DATA QUERY ATTLOG command to trigger device to push all attendance records
+	s.QueueCommand(sn, "DATA QUERY ATTLOG")
 
-	log.Printf("[adms] registry successful and LOG command queued: SN=%s IP=%s", sn, clientIP)
+	log.Printf("[adms] registry successful and DATA QUERY ATTLOG queued: SN=%s IP=%s", sn, clientIP)
 
 	return "OK\n"
 }

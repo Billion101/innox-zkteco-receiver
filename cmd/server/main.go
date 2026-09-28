@@ -81,6 +81,7 @@ func main() {
 	r.Get("/api/punches", dashHandler.ListPunches)
 	r.Get("/api/events/stream", dashHandler.GetEventsStream)
 	r.Post("/api/test-punch", dashHandler.TestPunch)
+	r.Post("/api/sync-logs", dashHandler.SyncLogs)
 
 	log.Printf("=====================================================")
 	log.Printf(" INNO X ZKTeco ADMS Receiver starting on :%s", cfg.Port)
