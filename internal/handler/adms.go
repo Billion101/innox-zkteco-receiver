@@ -85,6 +85,11 @@ func (h *ADMSHandler) GetRequest(w http.ResponseWriter, r *http.Request) {
 // DeviceCmd handles command execution acknowledgments from the device
 // Request: POST /iclock/devicecmd?SN=PYA8262400422
 func (h *ADMSHandler) DeviceCmd(w http.ResponseWriter, r *http.Request) {
+	sn := r.URL.Query().Get("SN")
+	body, _ := io.ReadAll(r.Body)
+	defer r.Body.Close()
+	log.Printf("[adms] devicecmd received from SN=%s: %s", sn, string(body))
+
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("OK\n"))

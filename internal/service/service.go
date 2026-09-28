@@ -19,6 +19,15 @@ type Service struct {
 	cfg  *config.Config
 	repo *repository.Repository
 
+	// Device options & registration state tracking
+	devMu         sync.RWMutex
+	devRegistered map[string]bool
+
+	// Command queue for devices (SN -> []commands)
+	cmdMu    sync.Mutex
+	cmdQueue map[string][]string
+	cmdID    int64
+
 	// SSE subscriber hub
 	hubMu       sync.RWMutex
 	subscribers map[chan *model.AttendanceEvent]struct{}
@@ -26,9 +35,11 @@ type Service struct {
 
 func New(cfg *config.Config, repo *repository.Repository) *Service {
 	return &Service{
-		cfg:         cfg,
-		repo:        repo,
-		subscribers: make(map[chan *model.AttendanceEvent]struct{}),
+		cfg:           cfg,
+		repo:          repo,
+		devRegistered: make(map[string]bool),
+		cmdQueue:      make(map[string][]string),
+		subscribers:   make(map[chan *model.AttendanceEvent]struct{}),
 	}
 }
 
@@ -42,7 +53,29 @@ func (s *Service) ProcessHandshake(ctx context.Context, sn, clientIP, pushVer, l
 		Status:     "ONLINE",
 	}
 	s.repo.UpsertDevice(ctx, dev)
-	log.Printf("[adms] handshake from device SN=%s IP=%s PushVer=%s Lang=%s", sn, clientIP, pushVer, lang)
+
+	s.devMu.RLock()
+	registered := s.devRegistered[sn]
+	s.devMu.RUnlock()
+
+	// If device already registered, check if any pending commands exist (or send OK heartbeat)
+	if registered {
+		s.cmdMu.Lock()
+		if len(s.cmdQueue[sn]) > 0 {
+			cmd := s.cmdQueue[sn][0]
+			s.cmdQueue[sn] = s.cmdQueue[sn][1:]
+			s.cmdID++
+			id := s.cmdID
+			s.cmdMu.Unlock()
+			log.Printf("[adms] sending queued command to SN=%s: C:%d:%s", sn, id, cmd)
+			return fmt.Sprintf("C:%d:%s\n", id, cmd)
+		}
+		s.cmdMu.Unlock()
+
+		return "OK\n"
+	}
+
+	log.Printf("[adms] initial handshake from device SN=%s IP=%s PushVer=%s Lang=%s", sn, clientIP, pushVer, lang)
 
 	return fmt.Sprintf("GET OPTION FROM: %s\n"+
 		"ATTLOGStamp=0\n"+
@@ -79,7 +112,17 @@ func (s *Service) ProcessRegistry(ctx context.Context, sn, clientIP, body string
 		dev.Status = "ONLINE"
 	}
 	s.repo.UpsertDevice(ctx, dev)
-	log.Printf("[adms] registry successful: SN=%s IP=%s payload=%q", sn, clientIP, body)
+
+	s.devMu.Lock()
+	s.devRegistered[sn] = true
+	s.devMu.Unlock()
+
+	// Queue LOG command to fetch any stored attendance records
+	s.cmdMu.Lock()
+	s.cmdQueue[sn] = append(s.cmdQueue[sn], "LOG")
+	s.cmdMu.Unlock()
+
+	log.Printf("[adms] registry successful and LOG command queued: SN=%s IP=%s", sn, clientIP)
 
 	return "OK\n"
 }
