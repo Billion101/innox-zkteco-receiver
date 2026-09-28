@@ -54,49 +54,28 @@ func (s *Service) ProcessHandshake(ctx context.Context, sn, clientIP, pushVer, l
 	}
 	s.repo.UpsertDevice(ctx, dev)
 
-	s.devMu.RLock()
-	registered := s.devRegistered[sn]
-	s.devMu.RUnlock()
-
-	// If device already registered, check if any pending commands exist (or send OK heartbeat)
-	if registered {
-		s.cmdMu.Lock()
-		if len(s.cmdQueue[sn]) > 0 {
-			cmd := s.cmdQueue[sn][0]
-			s.cmdQueue[sn] = s.cmdQueue[sn][1:]
-			s.cmdID++
-			id := s.cmdID
-			s.cmdMu.Unlock()
-			log.Printf("[adms] sending queued command to SN=%s: C:%d:%s", sn, id, cmd)
-			return fmt.Sprintf("C:%d:%s\n", id, cmd)
-		}
-		s.cmdMu.Unlock()
-
-		return "OK\n"
-	}
-
-	log.Printf("[adms] initial handshake from device SN=%s IP=%s PushVer=%s Lang=%s", sn, clientIP, pushVer, lang)
+	log.Printf("[adms] handshake (options request) from device SN=%s IP=%s PushVer=%s Lang=%s", sn, clientIP, pushVer, lang)
 
 	return fmt.Sprintf("GET OPTION FROM: %s\n"+
+		"registry=ok\n"+
+		"RegistryCode=12345678901234567890\n"+
+		"ServerVersion=3.1.2\n"+
+		"ServerName=InnoxADMS\n"+
+		"PushProtVer=3.1.2\n"+
 		"Stamp=0\n"+
 		"OpStamp=0\n"+
-		"ATTLOGStamp=0\n"+
-		"OPERLOGStamp=0\n"+
-		"BIODATAStamp=0\n"+
-		"ATTPHOTOStamp=0\n"+
-		"ErrorDelay=10\n"+
-		"Delay=30\n"+
-		"TransInterval=1\n"+
+		"ATTLOGStamp=None\n"+
+		"OPERLOGStamp=None\n"+
+		"ATTPHOTOStamp=None\n"+
+		"ErrorDelay=30\n"+
+		"Delay=10\n"+
+		"RequestDelay=10\n"+
 		"TransTimes=00:00;23:59\n"+
-		"TransFlag=111111111111\n"+
-		"TimeZone=7\n"+
+		"TransInterval=1\n"+
+		"TransFlag=TransData AttLog\tOpLog\tAttPhoto\n"+
 		"Realtime=1\n"+
-		"Encrypt=0\n"+
-		"ServerVer=3.1.2\n"+
-		"PushProtVer=3.1.2\n"+
-		"SupportPing=1\n"+
-		"PushOptionsFlag=1\n"+
-		"RegistryCode=12345678901234567890\n", sn)
+		"TimeZone=7\n"+
+		"Encrypt=0\n", sn)
 }
 
 func (s *Service) QueueCommand(sn, cmd string) {
@@ -136,12 +115,19 @@ func (s *Service) ProcessRegistry(ctx context.Context, sn, clientIP, body string
 	s.devRegistered[sn] = true
 	s.devMu.Unlock()
 
-	// Queue DATA QUERY ATTLOG command to trigger device to push all attendance records
-	s.QueueCommand(sn, "DATA QUERY ATTLOG")
+	log.Printf("[adms] registry successful from SN=%s IP=%s", sn, clientIP)
 
-	log.Printf("[adms] registry successful and DATA QUERY ATTLOG queued: SN=%s IP=%s", sn, clientIP)
-
-	return "OK\n"
+	return "registry=ok\n" +
+		"RegistryCode=12345678901234567890\n" +
+		"ServerVersion=3.1.2\n" +
+		"ServerName=InnoxADMS\n" +
+		"PushProtVer=3.1.2\n" +
+		"ErrorDelay=30\n" +
+		"RequestDelay=10\n" +
+		"TransInterval=1\n" +
+		"TransTimes=00:00;23:59\n" +
+		"Realtime=1\n" +
+		"OK\n"
 }
 
 func (s *Service) ProcessHeartbeat(ctx context.Context, sn, clientIP string) string {
@@ -159,6 +145,19 @@ func (s *Service) ProcessHeartbeat(ctx context.Context, sn, clientIP string) str
 		dev.Status = "ONLINE"
 	}
 	s.repo.UpsertDevice(ctx, dev)
+
+	s.cmdMu.Lock()
+	if len(s.cmdQueue[sn]) > 0 {
+		cmd := s.cmdQueue[sn][0]
+		s.cmdQueue[sn] = s.cmdQueue[sn][1:]
+		s.cmdID++
+		id := s.cmdID
+		s.cmdMu.Unlock()
+		log.Printf("[adms] sending queued command to SN=%s on getrequest: C:%d:%s", sn, id, cmd)
+		return fmt.Sprintf("C:%d:%s\n", id, cmd)
+	}
+	s.cmdMu.Unlock()
+
 	return "OK\n"
 }
 
